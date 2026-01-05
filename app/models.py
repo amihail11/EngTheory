@@ -1,11 +1,26 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Table, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     pass
+
+
+article_tag_association = Table(
+    "article_tag_association",
+    Base.metadata,
+    mapped_column(
+        "article_id",
+        Integer,
+        ForeignKey("article.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    mapped_column(
+        "tag_id", Integer, ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True
+    ),
+)
 
 
 class User(Base):
@@ -58,7 +73,7 @@ class Topic(Base):
 class Article(Base):
     __tablename__ = "article"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    pk: Mapped[int] = mapped_column("id", Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(
         String(200), unique=True, index=True, nullable=False
@@ -85,3 +100,23 @@ class Article(Base):
 
     topic: Mapped["Topic"] = relationship("Topic", back_populates="articles")
     author: Mapped["User" | None] = relationship("User", back_populates="articles")
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag", secondary=article_tag_association, back_populates="articles"
+    )
+
+
+class Tag(Base):
+    __tablename__ = "tag"
+
+    pk: Mapped[int] = mapped_column("id", Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(
+        String(50), unique=True, index=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    articles: Mapped[list["Article"]] = relationship(
+        "Article", secondary=article_tag_association, back_populates="tags"
+    )
