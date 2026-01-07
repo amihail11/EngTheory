@@ -1,6 +1,17 @@
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Table, Text, func
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -11,15 +22,12 @@ class Base(DeclarativeBase):
 article_tag_association = Table(
     "article_tag_association",
     Base.metadata,
-    mapped_column(
+    Column(
         "article_id",
-        Integer,
         ForeignKey("article.id", ondelete="CASCADE"),
         primary_key=True,
     ),
-    mapped_column(
-        "tag_id", Integer, ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True
-    ),
+    Column("tag_id", ForeignKey("tag.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -37,7 +45,7 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now
+        DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), onupdate=func.now()
@@ -58,7 +66,7 @@ class Topic(Base):
     order: Mapped[int] = mapped_column(Integer, default=0)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now
+        DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -85,7 +93,9 @@ class Article(Base):
     topic_id: Mapped[int] = mapped_column(
         ForeignKey("topic.id", ondelete="CASCADE"), nullable=False
     )
-    author_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="SET NULL"))
+    author_id: Mapped[int | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL")
+    )
 
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
     views_counter: Mapped[int] = mapped_column(Integer, default=0)
@@ -99,7 +109,7 @@ class Article(Base):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     topic: Mapped["Topic"] = relationship("Topic", back_populates="articles")
-    author: Mapped["User" | None] = relationship("User", back_populates="articles")
+    author: Mapped[Optional["User"]] = relationship("User", back_populates="articles")
     tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary=article_tag_association, back_populates="articles"
     )

@@ -8,10 +8,11 @@ dependencies = [
     "alembic>=1.17.2",
     "fastapi[standard,standart]>=0.128.0",
     "jinja2>=3.1.6",
+    "psycopg2>=2.9.11",
     "pydantic>=2.12.5",
     "python-multipart>=0.0.21",
     "sqlalchemy>=2.0.45",
 ]
 
-[tool.pylint.MESSAGES CONTROL]
-disable = "E1102, C0114, C0115"
+[tool.pylint."MESSAGES CONTROL"]
+disable = "E1101, E1102, C0114, C0115"
